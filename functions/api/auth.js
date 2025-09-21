@@ -1,21 +1,16 @@
-export async function onRequestGet(context) {
+export async function onRequest(context) {
   const { request, env } = context;
-  const client_id = env.GITHUB_CLIENT_ID;
 
-  try {
-    const url = new URL(request.url);
-    const redirectUrl = new URL("https://github.com/login/oauth/authorize");
-    redirectUrl.searchParams.set("client_id", client_id);
-    redirectUrl.searchParams.set("redirect_uri", url.origin + "/api/auth/callback");
-    redirectUrl.searchParams.set("scope", "repo user");
-    redirectUrl.searchParams.set(
-      "state",
-      crypto.getRandomValues(new Uint8Array(12)).join("")
-    );
+  const url = new URL(request.url);
+  const provider = url.searchParams.get("provider");
+  const siteId = url.searchParams.get("site_id");
 
-    return Response.redirect(redirectUrl.href, 302);
-  } catch (error) {
-    console.error(error);
-    return new Response(error.message, { status: 500 });
+  if (provider !== "github") {
+    return new Response("Unsupported provider", { status: 400 });
   }
+
+  const redirectUri = `${url.origin}/api/auth/callback`;
+  const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${env.GITHUB_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=repo,user:email&state=${crypto.randomUUID()}`;
+
+  return Response.redirect(githubAuthUrl, 302);
 }

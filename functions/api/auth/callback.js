@@ -1,3 +1,4 @@
+// functions/api/auth/callback.js
 function renderBody(status, content) {
   return `
     <script>
@@ -16,8 +17,7 @@ function renderBody(status, content) {
   `;
 }
 
-export async function onRequestGet(context) {
-  const { request, env } = context;
+export async function onRequest({ request, env }) {
   const client_id = env.GITHUB_CLIENT_ID;
   const client_secret = env.GITHUB_CLIENT_SECRET;
 
@@ -25,11 +25,13 @@ export async function onRequestGet(context) {
     const url = new URL(request.url);
     const code = url.searchParams.get("code");
 
+    // Exchange code for access token
     const response = await fetch("https://github.com/login/oauth/access_token", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
+        "content-type": "application/json",
+        "user-agent": "cloudflare-functions-github-oauth-login",
+        "accept": "application/json",
       },
       body: JSON.stringify({ client_id, client_secret, code }),
     });
@@ -38,7 +40,7 @@ export async function onRequestGet(context) {
 
     if (result.error) {
       return new Response(renderBody("error", result), {
-        headers: { "Content-Type": "text/html;charset=UTF-8" },
+        headers: { "content-type": "text/html;charset=UTF-8" },
         status: 401,
       });
     }
@@ -46,12 +48,11 @@ export async function onRequestGet(context) {
     const token = result.access_token;
     const provider = "github";
 
-    return new Response(renderBody("success", { token, provider }), {
-      headers: { "Content-Type": "text/html;charset=UTF-8" },
-      status: 200,
-    });
-  } catch (error) {
-    console.error(error);
-    return new Response(error.message, { status: 500 });
+    return new Response(
+      renderBody("success", { token, provider }),
+      { headers: { "content-type": "text/html;charset=UTF-8" }, status: 200 }
+    );
+  } catch (err) {
+    return new Response(err.message, { status: 500 });
   }
 }
