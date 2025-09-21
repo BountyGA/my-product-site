@@ -1,0 +1,41 @@
+---
+const { product } = Astro.props;
+const { name, description, price, image } = product;
+---
+
+<article class="border rounded-lg shadow p-4 flex flex-col">
+  <img src={image} alt={name} class="mb-4 w-full h-48 object-cover rounded" />
+
+  <h2 class="text-xl font-semibold">{name}</h2>
+  <p class="text-gray-600 text-sm mb-2">{description}</p>
+  <p class="font-bold text-lg mb-4">${price.toFixed(2)}</p>
+
+  <form class="mt-auto">
+    <label for={`qty-${name}`} class="block mb-1">Quantity</label>
+    <input
+      id={`qty-${name}`}
+      type="number"
+      name="quantity"
+      min="1"
+      value="1"
+      class="border px-2 py-1 rounded w-20"
+    />
+    <button
+      type="button"
+      class="bg-green-600 text-white px-4 py-2 rounded ml-2"
+      onClick={`orderViaWhatsApp('${name}', ${price}, 'qty-${name}')`}
+    >
+      Order via WhatsApp
+    </button>
+  </form>
+</article>
+
+<script>
+  function orderViaWhatsApp(name, price, inputId) {
+    const qty = document.getElementById(inputId).value || 1;
+    const total = (qty * price).toFixed(2);
+    const message = `Hello, I would like to order ${qty} x ${name} for a total of $${total}`;
+    const url = `https://wa.me/2348100093678?text=${encodeURIComponent(message)}`;
+    window.open(url, "_blank");
+  }
+</script>
