@@ -2,7 +2,7 @@ backend:
   name: github
   repo: BountyGA/my-product-site   # e.g. BountyGA/my-store
   branch: master                      # Your default branch
-  base_url: https://my-product-site-cis.pages.dev/api/auth
+  base_url: https://my-product-site-cis.pages.dev/api
 
 media_folder: "public/uploads"       # Where uploaded files are stored in repo
 public_folder: "/uploads"            # Public path for accessing uploaded files
